@@ -1,0 +1,119 @@
+---
+- name: Check if RKE binary exists
+  stat:
+    path: /usr/local/bin/rke
+  register: rke_stat
+
+- name: Download RKE
+  get_url:
+    url: "{{ rke_binary_url }}"
+    dest: /usr/local/bin/rke
+    mode: 'r+x'
+  when: not rke_stat.stat.exists
+  run_once: True
+
+- name: RKE version
+  command: rke --version
+  register: rkeversion
+
+- debug: msg="{{ rkeversion.stdout }}"
+
+- name: Ensure config directory exists
+  file:
+    path: "{{ _rke_config_dir }}"
+    state: directory
+    owner: "{{ rke_user }}"
+    group: "{{ rke_user }}"
+    mode: '0755'
+  run_once: True
+
+- name: Create cluster configuration file
+  template:
+    src: cluster.j2
+    dest: "{{ _rke_config_dir }}/cluster.yml"
+    owner: "{{ rke_user }}"
+    group: "{{ rke_user }}"
+    mode: '0644'
+  register: rke_cluster_config
+  run_once: True
+
+- name: Deploying cluster with RKE
+  become_user: "{{ rke_user }}"
+  shell: |
+    set -o pipefail
+    /usr/local/bin/rke up | tee rke-up.log
+  args:
+    executable: /bin/bash
+    chdir: "{{ _rke_config_dir }}"
+  changed_when: False
+  run_once: True
+
+- name: Check deploy Kubernetes with RKE
+  lineinfile:
+    path: "{{ _rke_config_dir }}/rke-up.log"
+    regexp: 'Finished building Kubernetes cluster successfully'
+    state: absent
+  check_mode: True
+  register: rke_up_successfully
+  changed_when: false
+  failed_when: rke_up_successfully is failed or not rke_up_successfully.found
+  run_once: True
+
+# Installing kubectl CLI 1.22.0
+- name: Check if kubectl binary exists
+  stat:
+    path: /usr/local/bin/kubectl
+  register: kubectl_stat
+
+- name: Download kubectl
+  get_url:
+    url: "{{ kubectl_binary_url }}"
+    dest: /usr/local/bin/kubectl
+    mode: 'a+x'
+  when: not kubectl_stat.stat.exists
+  run_once: True
+
+- name: kubectl version
+  command: kubectl version --client
+  register: kubectlversion
+
+- debug: msg="{{ kubectlversion.stdout }}"
+
+# Installing Helm CLI
+- name: Check if Helm binary exists
+  stat:
+    path: /usr/local/bin/helm
+  register: helm_stat
+
+- name: Download Helm 3
+  get_url:
+    url: "{{ helm_binary_url }}"
+    dest: ./get_helm.sh
+    mode: 0700
+  when: not helm_stat.stat.exists
+  run_once: True
+
+- name: Installing Helm
+  command: ./get_helm.sh
+
+- name: Helm version
+  command: helm version
+  register: helmversion
+
+- debug: msg="{{ helmversion.stdout }}"
+
+# Config kubeconfig
+- name: Ensure $HOME/.kube exists
+  file:
+    path: ~/.kube
+    state: directory
+    mode: '0755'
+  run_once: True
+
+- name: Copy kubeconfig to default location
+  copy:
+    remote_src: True
+    src: "{{ _rke_config_dir }}/kube_config_cluster.yml"
+    dest: ~/.kube/config
+    mode: '0644'
+  run_once: True

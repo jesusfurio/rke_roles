@@ -1,0 +1,42 @@
+---
+# Load kernel modules
+- name: Load kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ k8s_kernel_modules }}"
+  ignore_errors: yes
+
+- name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
+  shell: |
+    swapoff -a
+
+- name: Disable SWAP in fstab since kubernetes can't work with swap enabled (2/2)
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+.*)$'
+    replace: '# \1'
+
+- name: Modify sysctl entries
+  sysctl:
+    name: '{{ item.key }}'
+    value: '{{ item.value }}'
+    sysctl_set: yes
+    state: present
+    reload: yes
+  with_items:
+    - {key: net.bridge.bridge-nf-call-ip6tables, value: 1}
+    - {key: net.bridge.bridge-nf-call-iptables,  value: 1}
+    - {key: net.ipv4.ip_forward,  value: 1}
+    
+# Update and upgrade packages
+- name: Update all packages to the latest version
+  apt:
+    name: "*"
+    state: latest
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+- name: Upgrade all packages to the latest version
+  apt:
+    upgrade: dist
+  when: ansible_facts['distribution'] == "Ubuntu"

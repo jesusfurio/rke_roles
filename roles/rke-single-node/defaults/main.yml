@@ -1,0 +1,23 @@
+---
+rke_cluster_name: dev-rke-cluster
+rke_kubernetes_version: v1.21.5-rancher1
+
+# URL de las versiones disponibles https://github.com/rancher/install-docker
+docker_script_version: "20.10"
+kubectl_version: v1.22.0
+kubectl_binary_url: https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl
+helm_binary_url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+
+# URL de las versiones disponibles https://github.com/rancher/rke/releases/
+rke_version: v1.3.1
+rke_binary_url: "https://github.com/rancher/rke/releases/download/{{ rke_version }}/rke_linux-amd64"
+
+rke_ignore_docker_version: true
+
+rke_user: rke
+
+rke_cluster_network_cidr: 10.42.0.0/16
+rke_service_network_cidr: 10.43.0.0/16
+rke_service_node_ports: 30000-32767
+
+rke_network_plugin: canal

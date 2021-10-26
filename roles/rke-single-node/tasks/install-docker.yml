@@ -1,0 +1,30 @@
+---
+- name: Download Docker CE script
+  get_url:
+    url: https://releases.rancher.com/install-docker/{{ docker_script_version }}.sh
+    dest: ./{{ docker_script_version }}.sh
+
+- name: Installing Docker CE using script
+  command: sh {{ docker_script_version }}.sh
+  register: installdocker
+
+- debug: msg="{{ installdocker.stdout }}"
+
+- name: Enable Docker service
+  systemd:
+    name: docker
+    enabled: yes
+    masked: no
+
+- name: Add the user '{{ rke_user }}' with a bash shell, appending the group 'docker' to the user's groups
+  user:
+    name: "{{ rke_user }}"
+    shell: /bin/bash
+    groups: docker
+    append: yes
+
+- name: Starting Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: True

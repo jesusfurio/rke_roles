@@ -1,0 +1,50 @@
+{% if rke_cluster_name is defined %}
+cluster_name: {{ rke_cluster_name }}
+{% endif %}
+{% if rke_kubernetes_version is defined %}
+kubernetes_version: {{ rke_kubernetes_version }}
+{% endif %}
+{% if rke_ignore_docker_version is defined %}
+ignore_docker_version: {{ rke_ignore_docker_version }}
+{% endif %}
+
+services:
+  etcd:
+    snapshot: null
+
+kube-api:
+  service_cluster_ip_range: {{ rke_service_network_cidr }}
+  service_node_port_range: {{ rke_service_node_ports }}
+  pod_security_policy: false
+
+kube-controller:
+  cluster_cidr: {{ rke_cluster_network_cidr }}
+  service_cluster_ip_range: {{ rke_service_network_cidr }}
+
+kubelet:
+  cluster_domain: cluster.local
+  cluster_dns_server: 10.43.0.10
+  fail_swap_on: false
+  extra_args:
+    max-pods: 150
+
+{% if rke_network_plugin is defined %}
+network:
+  plugin: {{ rke_network_plugin }}
+{% endif %}
+
+dns:
+  provider: coredns
+
+ingress:
+  provider: nginx
+  options:
+    use-forwarded-headers: "true"
+
+nodes:
+{% for host in groups['cluster'] %}
+  - address: {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+    internal_address: 
+    user: {{ rke_user }}
+    role: [controlplane, worker, etcd]
+{% endfor %}

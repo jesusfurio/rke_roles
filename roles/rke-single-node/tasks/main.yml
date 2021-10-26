@@ -1,0 +1,12 @@
+---
+- name: System config.
+  include_tasks: "./tasks/config-system.yml"
+
+- name: Installing Docker.
+  include_tasks: "./tasks/install-docker.yml"
+
+- name: RKE user config.
+  include_tasks: "./tasks/config-user.yml"
+
+- name: Creating RKE cluster.
+  include_tasks: "./tasks/deploy_cluster.yml"
