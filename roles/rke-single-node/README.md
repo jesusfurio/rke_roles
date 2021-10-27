@@ -1,7 +1,7 @@
 RKE Single Node
 =========
 
-An Ansible role that setup development Kubernetes cluster with RKE on Ubuntu.
+An Ansible role that setup development Kubernetes cluster with RKE on Ubuntu and OpenSUSE.
 
 Requirements
 --------------

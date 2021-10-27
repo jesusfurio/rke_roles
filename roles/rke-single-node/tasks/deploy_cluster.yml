@@ -1,4 +1,43 @@
 ---
+# Create RKE user
+- name: Add RKE admin user
+  user:
+    name: "{{ rke_user }}"
+    generate_ssh_key: True
+    ssh_key_bits: 4096
+    ssh_key_file: .ssh/id_rsa
+    groups: docker
+    append: True
+  run_once: True
+  register: rke_user_return
+
+- name: Set rke variables
+  set_fact:
+    _rke_config_dir: "{{ rke_user_return.home }}/rke"
+    _rke_ssh_key_file: "{{ rke_user_return.ssh_key_file }}"
+    _rke_ssh_public_key: "{{ rke_user_return.ssh_public_key }}"
+
+- name: Copy the SSH public key
+  authorized_key:
+    user: "{{ rke_user }}"
+    key: "{{ _rke_ssh_public_key }}"
+    state: present
+     
+- name: Configure SSH daemon
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^(#?(AllowTcpForwarding)\s(no|yes))$'
+    replace: 'AllowTcpForwarding yes'
+    mode: '0644'
+  register: sshd_config_state
+
+- name: Restart sshd
+  systemd:
+    name: sshd
+    state: restarted
+  when: sshd_config_state is changed
+
+# Deploy cluster
 - name: Check if RKE binary exists
   stat:
     path: /usr/local/bin/rke
@@ -8,7 +47,7 @@
   get_url:
     url: "{{ rke_binary_url }}"
     dest: /usr/local/bin/rke
-    mode: 'r+x'
+    mode: 'a+x'
   when: not rke_stat.stat.exists
   run_once: True
 
@@ -23,7 +62,6 @@
     path: "{{ _rke_config_dir }}"
     state: directory
     owner: "{{ rke_user }}"
-    group: "{{ rke_user }}"
     mode: '0755'
   run_once: True
 
@@ -32,7 +70,6 @@
     src: cluster.j2
     dest: "{{ _rke_config_dir }}/cluster.yml"
     owner: "{{ rke_user }}"
-    group: "{{ rke_user }}"
     mode: '0644'
   register: rke_cluster_config
   run_once: True
@@ -102,7 +139,6 @@
 
 - debug: msg="{{ helmversion.stdout }}"
 
-# Config kubeconfig
 - name: Ensure $HOME/.kube exists
   file:
     path: ~/.kube

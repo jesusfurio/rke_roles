@@ -1,0 +1,33 @@
+---
+# Refresh and update packages OpenSuse
+- zypper:
+    name: '*'
+    state: present
+    update_cache: yes
+  when: ansible_facts['distribution'] == "Suse"
+
+- name: Update all packages to the latest version
+  zypper:
+    name: '*'
+    state: latest
+  when: ansible_facts['distribution'] == "Suse"
+
+# Suse steps to install Docker
+- name: Install Docker CE
+  zypper:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ suse_docker_packages }}"
+  when: ansible_facts['distribution'] == "Suse"
+
+- name: Enable Docker service
+  systemd:
+    name: docker
+    enabled: yes
+    masked: no
+
+- name: Starting Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: True

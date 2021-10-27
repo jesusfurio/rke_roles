@@ -19,6 +19,9 @@ galaxy_info:
   - name: Ubuntu
     versions:
     - bionic
+  - name: OpenSUSE
+    versions:
+    - Leap 15.3
   galaxy_tags: 
     - docker
     - kubernetes

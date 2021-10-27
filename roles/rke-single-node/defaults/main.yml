@@ -1,6 +1,6 @@
 ---
 rke_cluster_name: dev-rke-cluster
-rke_kubernetes_version: v1.21.5-rancher1
+rke_kubernetes_version: v1.21.5-rancher1-1
 
 # URL de las versiones disponibles https://github.com/rancher/install-docker
 docker_script_version: "20.10"
