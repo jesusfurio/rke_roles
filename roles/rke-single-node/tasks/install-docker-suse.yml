@@ -1,6 +1,7 @@
 ---
 # Refresh and update packages OpenSuse
-- zypper:
+- name: Refresh all packages version
+  zypper:
     name: '*'
     state: present
     update_cache: yes

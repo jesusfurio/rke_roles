@@ -1,14 +1,14 @@
 ---
-- name: Configurando el sistema
+- name: System config
   include_tasks: "./tasks/config-system.yml"
 
-- name: Instalando Docker (Ubuntu)
+- name: Installing Docker (Ubuntu)
   include_tasks: "./tasks/install-docker-ubuntu.yml"
   when: ansible_distribution == 'Ubuntu'
 
-- name: Instalando Docker (OpenSuse)
+- name: Installing Docker (OpenSuse)
   include_tasks: "./tasks/install-docker-suse.yml"
   when: ansible_os_family == 'Suse'
 
-- name: Creando el cluster con RKE
+- name: Creating cluster with RKE
   include_tasks: "./tasks/deploy_cluster.yml"
