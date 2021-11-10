@@ -5,7 +5,7 @@ An Ansible role that setup development Kubernetes cluster with RKE on Ubuntu and
 
 Requirements
 --------------
-Inventory file with server IP in group calling "cluster".
+Inventory file with servers IP´s in group calling "cluster" and subgroup with control-plane, etcd and worker IP´s.
 
 Role Variables
 --------------
