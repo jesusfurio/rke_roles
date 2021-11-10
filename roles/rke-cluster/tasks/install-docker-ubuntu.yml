@@ -1,0 +1,34 @@
+---
+# Update and upgrade packages Ubuntu
+- name: Update all packages to the latest version
+  apt:
+    name: "*"
+    state: latest
+
+- name: Upgrate all packages to the latest version
+  apt:
+    upgrade: dist
+
+# Ubuntu steps to install Docker
+- name: Download Docker CE script
+  get_url:
+    url: https://releases.rancher.com/install-docker/{{ docker_script_version }}.sh
+    dest: ./{{ docker_script_version }}.sh
+
+- name: Installing Docker CE using script
+  command: sh {{ docker_script_version }}.sh
+  register: installdocker
+
+- debug: msg="{{ installdocker.stdout }}"
+
+- name: Enable Docker service
+  systemd:
+    name: docker
+    enabled: yes
+    masked: no
+
+- name: Starting Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: True
