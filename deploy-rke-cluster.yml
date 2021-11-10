@@ -1,0 +1,5 @@
+- name: Configurando RKE
+  hosts: cluster
+  become: true
+  roles:
+    - /etc/ansible/roles/rke-cluster
