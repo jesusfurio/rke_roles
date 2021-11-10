@@ -1,7 +1,7 @@
 galaxy_info:
   role_name: RKE Cluster
   author: Jesús Furió
-  description: An Ansible Role that setup Development RKE Cluster.
+  description: An Ansible Role that setup RKE Cluster.
   license: MIT
 
   min_ansible_version: 2.9
